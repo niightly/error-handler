@@ -1,0 +1,22 @@
+{
+  "name": "ibm-error-handler",
+  "version": "1.0.0",
+  "description": "Will handle some errors and deliver a proper code to the frontend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/niightly/error-handler.git"
+  },
+  "keywords": [
+    "error"
+  ],
+  "author": "Niightly <tggsilva@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/niightly/error-handler/issues"
+  },
+  "homepage": "https://github.com/niightly/error-handler#readme"
+}
