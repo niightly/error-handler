@@ -1,5 +1,11 @@
 let shouldLog = false
 
+/**
+ * Will validate if the required params have been passed to the module
+ * @param  {Error} 				err 		The error created on the backend
+ * @param  {Express.Response} 	res 		Express response object
+ * @return {boolean}     					True, if both are passed / false if misses one / both
+ */
 let ensureVariables = function(err, res) {
 	let isValid = false
 
@@ -32,7 +38,7 @@ class ErrorHandler {
 	 * @param  {Express.Response} 	res 		Express response object
 	 * @return {Express.Response}     			With the treated error
 	 */
-	static toResponse(err, res) {
+	static exec(err, res) {
 		if (shouldLog) console.log(err)
 
 		if (!ensureVariables(err, res)) { return }

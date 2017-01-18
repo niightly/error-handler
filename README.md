@@ -20,6 +20,7 @@ This method is used to determine if the error object should be print to the term
 | --- | --- |
 | Boolean | **Required:** If true, will prints the error, won't if false. *(default: false)* |
 
+
 #### ErrorHandler.exec(err, res)
 This method will receive the error and the express response, assign the error according it's code.
 
@@ -32,7 +33,7 @@ This method will receive the error and the express response, assign the error ac
 ### How to Use
 Check the example below to get a better understanding of the module
 ```javascript
-const ErrorHandler = require('error-handler')
+const ErrorHandler = require('ibm-error-handler')
 
 //bellow I check which environment I'm working with based on my environment variables to determine if I want to 
 //print the error to the terminal or not. But you can do whatever you want, just need to know value to assign must
