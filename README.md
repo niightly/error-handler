@@ -13,32 +13,35 @@ Run `npm i ibm-error-handler --save`
 ### Documentation
 Below follows the details about methods available in this module
 
-#### ErrorHandler.print = false
-This method is used to determine if the error object should be print to the terminal/console.
+#### Constructor
+This module requires a parameter when require it. 
 
-| Value Type | Description |
-| --- | --- |
-| Boolean | **Required:** If true, will prints the error, won't if false. *(default: false)* |
+| parameter | type    | Description
+| ---       | ---     | ---
+| `Print`   | Boolean | Tells the module if it should print the error on the terminal
 
 
-#### ErrorHandler.exec(err, res)
-This method will receive the error and the express response, assign the error according it's code.
+
+#### ErrorHandler.return(err, res)
+This method will receive the error with/without the express response, if receives an express response will deliver a status to the front end.
 
 | Params | Value Type | Description |
 | --- | --- | --- |
 | **err** | Object | **Required:** The error object to be treated |
-| **res** | Object | **Required:** The [Express.Response](http://expressjs.com/en/4x/api.html#res) object. |
+| **res** | Object | **Optional:** The [Express.Response](http://expressjs.com/en/4x/api.html#res) object. |
 
 
 ### How to Use
-Check the example below to get a better understanding of the module
-```javascript
-const ErrorHandler = require('ibm-error-handler')
 
-//bellow I check which environment I'm working with based on my environment variables to determine if I want to 
-//print the error to the terminal or not. But you can do whatever you want, just need to know value to assign must
-//be a Boolean
-ErrorHandler.print = (!process.env.NODE_ENV || process.env.NODE_ENV == 'development') ? true : false
+
+##### Controllers
+Check the example below to get a better understanding of the module
+
+```javascript
+//bellow I check which environment I'm working with based on my environment  
+//variables to determine if I want to print the error to the terminal or not.
+//But you can do whatever you want, but must be a Boolean
+const ErrorHandler = require('ibm-error-handler')(process.env.NODE_ENV!=='prod')
 
 /**
  * Will handle the logins of the application
@@ -47,11 +50,40 @@ class Login {
 	constructor() { }
   
   //An example of a function executed in when a route is called
+	async index(req, res) {
+		try {
+			let user = await Session.create(req.user)
+			res.status(200).json(user)
+		} catch (err) {
+			ErrorHandler.exec(err, res)
+		}
+	}
+}
+```
+
+##### Models, services, factories (places that don't use express response)
+Check the example below to get a better understanding of the module
+
+```javascript
+//bellow I check which environment I'm working with based on my environment  
+//variables to determine if I want to print the error to the terminal or not.
+//But you can do whatever you want, but must be a Boolean
+const ErrorHandler = require('ibm-error-handler')(process.env.NODE_ENV!=='prod')
+const Error = ErrorHandler.errors
+
+/**
+ * Will handle the logins of the application
+ */
+class Models {
+	constructor() { }
+  
+  	//An example of a function executed in when a route is called
 	index(req, res) {
-		Session.create(req.user)
-		.then(user => Session.mapUserData(user, user.token))
-		.then(result => res.status(200).json(result))
-		.catch(err => ErrorHandler.exec(err, res))
+		try {
+			//Any code
+		} catch (err) {
+			ErrorHandler.exec(err)
+		}
 	}
 }
 ```
