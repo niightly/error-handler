@@ -25,7 +25,7 @@ class ErrorHandler {
 	 * @return {Express.Response}     			With the treated error
 	 */
 	return(err, res) {
-		if (this.shouldLog===true) { console.log(err) }
+		if (this.shouldLog===true) { printLog(err) }
 		if (!this._ensureVariables(err, res)) { return }
 
 		err = this._defineError(err)
@@ -77,7 +77,7 @@ class ErrorHandler {
 	 */
 	_defineError(err) {
 		if(err.name == 'MongoError' && err.code == 11000) {
-			return {
+			err = {
 				name: "AlreadyExists",
 				message: "DUPLICATE_NOT_ALLOWED",
 				mongoError: err
@@ -104,6 +104,44 @@ class ErrorHandler {
 }
 
 /**
+ * Prints teh error in a way more readable
+ * @param  {Error} err The error created on the server
+ */
+function printLog(err) {
+	console.log('######### ERROR LOG ##########')
+	console.log('  - Name: ', err.name)
+	console.log('  - message: ', err.message)
+	console.log('  - Error: ')
+
+	if (err.stack && Array.isArray(err.stack) && err.stack.length >= 0) {
+		if (err.stack[0] = 'Error') { err.stack.shift() }
+		for (const entry of err.stack) {
+			console.log('       ', entry)
+		}
+	} else {
+		console.log(err.stack)
+	}
+	console.log('##############################')
+}
+
+/**
+ * Will remove the stack that points to this module instead the file that created it.
+ * @param  {String/Object} stack 		The Stack of errors
+ * @return {Array}        				The stack splittd into an array
+ */		
+function _createErrorStack(err) {
+	let stack = (err) ? err.stack : (new Error()).stack
+	if (!stack || typeof stack !== "string") { return stack }
+	
+	let tmpStack = stack.split('\n')
+	if ((Array.isArray(tmpStack) && tmpStack.length > 0) && (tmpStack[1].indexOf("ibm-error-handler") >= 0 || tmpStack[1].indexOf("error-handler") >= 0)) {
+		tmpStack.splice(1,1)
+	}
+
+	return tmpStack.map(entry => entry.trim())
+}
+
+/**
  * User is trying to access a resource he does not have permission to
  * @param {string} message A custom message to overwrite the default one
  * 
@@ -111,7 +149,7 @@ class ErrorHandler {
 function AccessDenied(message) {
 	this.name = 'AccessDenied'
 	this.message = message || 'ACCESS_DENIED'
-	this.stack = (new Error()).stack
+	this.stack = _createErrorStack()
 }
 AccessDenied.prototype = Object.create(Error.prototype)
 AccessDenied.prototype.constructor = AccessDenied
@@ -123,7 +161,7 @@ AccessDenied.prototype.constructor = AccessDenied
 function Unauthorized(message) {
 	this.name = 'Unauthorized'
 	this.message = message || 'UNAUTHORIZED'
-	this.stack = (new Error()).stack
+	this.stack = _createErrorStack()
 }
 Unauthorized.prototype = Object.create(Error.prototype)
 Unauthorized.prototype.constructor = Unauthorized
@@ -135,7 +173,7 @@ Unauthorized.prototype.constructor = Unauthorized
 function NotFound(message) {
 	this.name = 'NotFound'	
 	this.message = message || 'NOT_FOUND'
-	this.stack = (new Error()).stack
+	this.stack = _createErrorStack()
 }
 NotFound.prototype = Object.create(Error.prototype)
 NotFound.prototype.constructor = NotFound
@@ -147,7 +185,7 @@ NotFound.prototype.constructor = NotFound
 function AlreadyExists(message) {
 	this.name = 'AlreadyExists'	
 	this.message = message || 'ALREADY_EXISTS'
-	this.stack = (new Error()).stack
+	this.stack = _createErrorStack()
 }
 AlreadyExists.prototype = Object.create(Error.prototype)
 AlreadyExists.prototype.constructor = AlreadyExists
@@ -159,7 +197,7 @@ AlreadyExists.prototype.constructor = AlreadyExists
 function BadRequest(message) {
 	this.name = 'BadRequest'
 	this.message = message || 'BAD_REQUEST'
-	this.stack = (new Error()).stack
+	this.stack = _createErrorStack()
 }
 BadRequest.prototype = Object.create(Error.prototype)
 BadRequest.prototype.constructor = BadRequest
@@ -171,7 +209,7 @@ BadRequest.prototype.constructor = BadRequest
 function Forbidden(message) {
 	this.name = 'Forbidden'
 	this.message = message || 'ACCESS_FORBIDDEN'
-	this.stack = (new Error()).stack
+	this.stack = _createErrorStack()
 }
 Forbidden.prototype = Object.create(Error.prototype)
 Forbidden.prototype.constructor = Forbidden
@@ -181,11 +219,9 @@ Forbidden.prototype.constructor = Forbidden
  * @param {string} message A custom message to overwrite the default one
  */
 function Unknown(error) {
-	error = (error) ? error.stack : (new Error()).stack
-
 	this.name = 'Unknown'
 	this.message = "UNKNOWN_ERROR"
-	this.stack = error
+	this.stack = _createErrorStack(error)
 }
 Unknown.prototype = Object.create(Error.prototype)
 Unknown.prototype.constructor = Unknown

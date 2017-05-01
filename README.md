@@ -55,7 +55,7 @@ class Login {
 			let user = await Session.create(req.user)
 			res.status(200).json(user)
 		} catch (err) {
-			ErrorHandler.exec(err, res)
+			ErrorHandler.return(err, res)
 		}
 	}
 }
@@ -82,7 +82,7 @@ class Models {
 		try {
 			//Any code
 		} catch (err) {
-			ErrorHandler.exec(err)
+			ErrorHandler.return(err)
 		}
 	}
 }
