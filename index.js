@@ -114,9 +114,8 @@ function printLog(err) {
 	console.log('  - Error: ')
 
 	if (err.stack && Array.isArray(err.stack) && err.stack.length >= 0) {
-		if (err.stack[0] = 'Error') { err.stack.shift() }
 		for (const entry of err.stack) {
-			console.log('       ', entry)
+			if (entry.trim() != 'Error') { console.log('       ', entry) }
 		}
 	} else {
 		console.log(err.stack)
@@ -134,8 +133,11 @@ function _createErrorStack(err) {
 	if (!stack || typeof stack !== "string") { return stack }
 	
 	let tmpStack = stack.split('\n')
-	if ((Array.isArray(tmpStack) && tmpStack.length > 0) && (tmpStack[1].indexOf("ibm-error-handler") >= 0 || tmpStack[1].indexOf("error-handler") >= 0)) {
-		tmpStack.splice(1,1)
+	if (Array.isArray(tmpStack) && tmpStack.length > 0) {
+		tmpStack = tmpStack.reduce(function(newStack, stackEntry) {
+			if (stackEntry.indexOf("ibm-error-handler") < 0) { newStack.push(stackEntry) }
+			return newStack
+		}, [])
 	}
 
 	return tmpStack.map(entry => entry.trim())
