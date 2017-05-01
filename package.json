@@ -1,6 +1,6 @@
 {
   "name": "ibm-error-handler",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Will handle some errors and deliver a proper code to the frontend",
   "main": "index.js",
   "scripts": {
