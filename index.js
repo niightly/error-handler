@@ -1,3 +1,4 @@
+let shouldStack = false
 let allowedErrors = {
 	AccessDenied  : AccessDenied,
 	Unauthorized  : Unauthorized,
@@ -14,6 +15,7 @@ let allowedErrors = {
 class ErrorHandler {
 	constructor(shouldLog = false) {
 		this.shouldLog = shouldLog
+		shouldStack = this.shouldLog
 	}
 
     get errors() { return allowedErrors }
@@ -129,6 +131,8 @@ function printLog(err) {
  * @return {Array}        				The stack splittd into an array
  */		
 function _createErrorStack(err) {
+	if (!shouldStack) { return }
+
 	let stack = (err) ? err.stack : (new Error()).stack
 	if (!stack || typeof stack !== "string") { return stack }
 	
