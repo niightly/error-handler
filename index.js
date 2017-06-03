@@ -1,23 +1,19 @@
 let shouldStack = false
 let allowedErrors = {
-	AccessDenied  : AccessDenied,
-	Unauthorized  : Unauthorized,
-	NotFound      : NotFound,
-	AlreadyExists : AlreadyExists,
-	BadRequest    : BadRequest,
-	Forbidden     : Forbidden,
-	Unknown       : Unknown
+	AccessDenied,
+	Unauthorized,
+	NotFound,
+	AlreadyExists,
+	BadRequest,
+	Forbidden,
+	Unknown
 }
 
 /**
  * Handle all errors to deliver it to the frontend
  */
 class ErrorHandler {
-	constructor(shouldLog = false) {
-		this.shouldLog = shouldLog
-		shouldStack = this.shouldLog
-	}
-
+	constructor(isDevelopment = false) { shouldStack = isDevelopment }
     get errors() { return allowedErrors }
 
 	/**
@@ -27,29 +23,29 @@ class ErrorHandler {
 	 * @return {Express.Response}     			With the treated error
 	 */
 	return(err, res) {
-		if (this.shouldLog===true) { printLog(err) }
-		if (!this._ensureVariables(err, res)) { return }
-
 		err = this._defineError(err)
+
+		if (shouldStack == true) { printLog(err) }
+		if (!this._ensureVariables(err, res)) { return }
 
 		if (res) {
 			switch(err.name.toLowerCase()){
-				case 'accessdenied'    : return res.status(403).json(err)
-				case 'unauthorized'    : return res.status(401).json(err)
-				case 'forbidden'       : return res.status(403).json(err)
-				case 'notfound'        : return res.status(404).json(err.message || err)
-				case 'alreadyexists'   : return res.status(400).json(err)
-				case 'mongoerror'      : return res.status(500).json(err)
-				case 'typeerror'       : return res.status(500).json(err.message || err)
-				case 'badrequest'      : return res.status(400).json(err)
-				case 'ValidationError' : return res.status(400).json(err)
-				default                : return res.status(500).json(err)
+				case 'accessdenied'          : return res.status(403).json(err)
+				case 'unauthorized'          : return res.status(401).json(err)
+				case 'forbidden'             : return res.status(403).json(err)
+				case 'notfound'              : return res.status(404).json(err.message || err)
+				case 'alreadyexists'         : return res.status(400).json(err)
+				case 'mongoerror'            : return res.status(500).json(err)
+				case 'typeerror'             : return res.status(500).json(err.message || err)
+				case 'badrequest'            : return res.status(400).json(err)
+				case 'fieldsvalidationerror' : return res.status(400).json(err)
+				default                      : return res.status(500).json(err)
 			}
 		} else {
 			let Error = this.errors
-
 			let types = Object.keys(Error)
-			if (typeof err == "object" && types.indexOf(err.name) >= 0) {
+
+			if (typeof err == "object" && types.indexOf(err.name) >= 0 || (err.name=='MongoError' || err.name=='FieldsValidationError')) {
 				throw err
 			} else {
 				throw new Error.Unknown(err)
@@ -81,21 +77,22 @@ class ErrorHandler {
 		if(err.name == 'MongoError' && err.code == 11000) {
 			err = {
 				name: "AlreadyExists",
-				message: "DUPLICATE_NOT_ALLOWED",
-				mongoError: err
+				message: "DUPLICATE_NOT_ALLOWED"
 			}
+
+			if (shouldStack) { err.stack = err }
 		} else if (err.name == 'ValidationError') {
 			let errors = {
-				name: 'ValidationError',
+				name: 'FieldsValidationError',
 				required: [],
 				message: "REQUIRED_FIELDS_EMPTY",
-				mongoError: err
 			}
 
 			for (let field in err.errors) {
 				if (err.errors[field].kind === 'required') { errors.required.push(field) }
 			}
 
+			if (shouldStack) { errors.stack = err }
 			return errors
 		} else if (!err.name) {
 			err.name = ""
@@ -110,6 +107,7 @@ class ErrorHandler {
  * @param  {Error} err The error created on the server
  */
 function printLog(err) {
+	if (err.stack == undefined) { return }
 	console.log('######### ERROR LOG ##########')
 	console.log('  - Name: ', err.name)
 	console.log('  - message: ', err.message)
