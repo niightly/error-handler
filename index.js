@@ -1,4 +1,4 @@
-let shouldStack = false
+let buildStack = false
 let allowedErrors = {
 	AccessDenied,
 	Unauthorized,
@@ -6,14 +6,15 @@ let allowedErrors = {
 	AlreadyExists,
 	BadRequest,
 	Forbidden,
-	Unknown
+	Unknown,
+	ReferenceError
 }
 
 /**
  * Handle all errors to deliver it to the frontend
  */
 class ErrorHandler {
-	constructor(isDevelopment = false) { shouldStack = isDevelopment }
+	constructor(isDevelopment = false) { this.shouldStack = isDevelopment }
     get errors() { return allowedErrors }
 
 	/**
@@ -25,7 +26,7 @@ class ErrorHandler {
 	return(err, res) {
 		err = this._defineError(err)
 
-		if (shouldStack == true) { printLog(err) }
+		if (this.shouldStack == true) { printLog(err) }
 		if (!this._ensureVariables(err, res)) { return }
 
 		if (res) {
@@ -80,7 +81,7 @@ class ErrorHandler {
 				message: "DUPLICATE_NOT_ALLOWED"
 			}
 
-			if (shouldStack) { err.stack = err }
+			if (this.shouldStack) { err.stack = err }
 		} else if (err.name == 'ValidationError') {
 			let errors = {
 				name: 'FieldsValidationError',
@@ -92,8 +93,15 @@ class ErrorHandler {
 				if (err.errors[field].kind === 'required') { errors.required.push(field) }
 			}
 
-			if (shouldStack) { errors.stack = err }
+			if (this.shouldStack) { errors.stack = err }
 			return errors
+		} else if (err.name == 'ReferenceError') {
+			err = {
+				name: err.name,
+				message: err.message,
+				stack: _createErrorStack(err)
+			}
+			err.stack.splice(0,1)
 		} else if (!err.name) {
 			err.name = ""
 		}
@@ -129,7 +137,7 @@ function printLog(err) {
  * @return {Array}        				The stack splittd into an array
  */		
 function _createErrorStack(err) {
-	if (!shouldStack) { return }
+	if (!buildStack) { return }
 
 	let stack = (err) ? err.stack : (new Error()).stack
 	if (!stack || typeof stack !== "string") { return stack }
@@ -230,10 +238,19 @@ function Unknown(error) {
 Unknown.prototype = Object.create(Error.prototype)
 Unknown.prototype.constructor = Unknown
 
+function ReferenceError(error) {
+	this.name = 'ReferenceError'
+	this.message = (error && error.message) || "REFERENCE_ERROR"
+	this.stack = _createErrorStack(error)
+}
+ReferenceError.prototype = Object.create(Error.prototype)
+ReferenceError.prototype.constructor = ReferenceError
+
 /**
  * Allow to return the module instantiated without using new when require the module.
  */
 function instantiate(shouldLog) {
+	if (typeof shouldLog == 'boolean') { buildStack = shouldLog }
   	return new ErrorHandler(shouldLog)
 }
 

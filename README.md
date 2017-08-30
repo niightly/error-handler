@@ -18,7 +18,7 @@ This module requires a parameter when require it.
 
 | parameter | type    | Description
 | ---       | ---     | ---
-| `Print`   | Boolean | Tells the module if it should print the error on the terminal
+| `Print`   | Boolean | Tells the module if it should print the error on the terminal, should be the same in all places where the module is used, I recommend a global variable.
 
 
 
