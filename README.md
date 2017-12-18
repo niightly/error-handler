@@ -20,15 +20,14 @@ This module requires a parameter when require it.
 | ---       | ---     | ---
 | `Print`   | Boolean | Tells the module if it should print the error on the terminal, should be the same in all places where the module is used, I recommend a global variable.
 
-
-
-#### ErrorHandler.return(err, res)
+#### ErrorHandler.return(err, res, callback)
 This method will receive the error with/without the express response, if receives an express response will deliver a status to the front end.
 
 | Params | Value Type | Description |
-| --- | --- | --- |
-| **err** | Object | **Required:** The error object to be treated |
-| **res** | Object | **Optional:** The [Express.Response](http://expressjs.com/en/4x/api.html#res) object. |
+| ------------ | ------ | --- |
+| **err**      | Object | **Required:** The error object to be treated |
+| **res**      | Object | **Optional:** The [Express.Response](http://expressjs.com/en/4x/api.html#res) object. |
+| **callback** | Object | **Optional:** A callback that will be executed but the error handler. |
 
 
 ### How to Use

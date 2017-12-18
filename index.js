@@ -23,11 +23,13 @@ class ErrorHandler {
 	 * @param  {Express.Response} 	res 		Express response object
 	 * @return {Express.Response}     			With the treated error
 	 */
-	return(err, res) {
+	return(err, res, addLog) {
 		err = this._defineError(err)
 
 		if (this.shouldStack == true) { printLog(err) }
 		if (!this._ensureVariables(err, res)) { return }
+
+		if (addLog && typeof addLog == 'function') { addLog.call(err) }
 
 		if (res) {
 			switch(err.name.toLowerCase()){
