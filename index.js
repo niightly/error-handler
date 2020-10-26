@@ -24,9 +24,9 @@ class ErrorHandler {
 	 * @return {Express.Response}     			With the treated error
 	 */
 	return(err, res, addLog) {
-		err = this._defineError(err)
+		err = this._defineError(err, res)
 
-		if (this.shouldStack == true) { printLog(err) }
+		if (this.shouldStack == true) { printLog(err, res) }
 		if (!this._ensureVariables(err, res)) { return }
 
 		if (addLog && typeof addLog == 'function') { addLog.call(err) }
@@ -76,9 +76,12 @@ class ErrorHandler {
 	 * @param  {Error} err 	The error
 	 * @return {Error}     	The error identified as mongo error or just the error
 	 */
-	_defineError(err) {
+	_defineError(err, res) {
+		if (res && res['X-Request-Id']) { err.identifier = res['X-Request-Id'] }
+
 		if(err.name == 'MongoError' && err.code == 11000) {
 			err = {
+				identifier: err.identifier,
 				name: "AlreadyExists",
 				message: "DUPLICATE_NOT_ALLOWED"
 			}
@@ -86,6 +89,7 @@ class ErrorHandler {
 			if (this.shouldStack) { err.stack = err }
 		} else if (err.name == 'ValidationError') {
 			let errors = {
+				identifier: err.identifier,
 				name: 'FieldsValidationError',
 				required: [],
 				message: "REQUIRED_FIELDS_EMPTY",
@@ -99,6 +103,7 @@ class ErrorHandler {
 			return errors
 		} else if (err.name == 'ReferenceError') {
 			err = {
+				identifier: err.identifier,
 				name: err.name,
 				message: err.message,
 				stack: _createErrorStack(err)
@@ -116,34 +121,37 @@ class ErrorHandler {
  * Prints teh error in a way more readable
  * @param  {Error} err The error created on the server
  */
-function printLog(err) {
+function printLog(err, res) {
+	if (res && res['X-Request-Id']) { err.identifier = res['X-Request-Id'] }
+
 	if (err.stack == undefined) { return }
-	console.log('######### ERROR LOG ##########')
-	console.log('  - Name: ', err.name)
-	console.log('  - message: ', err.message)
-	console.log('  - Error: ')
+	console.error('######### ERROR LOG ##########')
+	console.error('  - Identifier: ', err.identifier)
+	console.error('  - Name: ', err.name)
+	console.error('  - message: ', err.message)
+	console.error('  - Error: ')
 
 	if (err.stack && Array.isArray(err.stack) && err.stack.length >= 0) {
 		for (const entry of err.stack) {
-			if (entry.trim() != 'Error') { console.log('       ', entry) }
+			if (entry.trim() != 'Error') { console.error('       ', JSON.stringify(entry)) }
 		}
 	} else {
-		console.log(err.stack)
+		console.error(JSON.stringify(err.stack))
 	}
-	console.log('##############################')
+	console.error('##############################')
 }
 
 /**
  * Will remove the stack that points to this module instead the file that created it.
  * @param  {String/Object} stack 		The Stack of errors
  * @return {Array}        				The stack splittd into an array
- */		
+ */
 function _createErrorStack(err) {
 	if (!buildStack) { return }
 
 	let stack = (err) ? err.stack : (new Error()).stack
 	if (!stack || typeof stack !== "string") { return stack }
-	
+
 	let tmpStack = stack.split('\n')
 	if (Array.isArray(tmpStack) && tmpStack.length > 0) {
 		tmpStack = tmpStack.reduce(function(newStack, stackEntry) {
@@ -158,7 +166,7 @@ function _createErrorStack(err) {
 /**
  * User is trying to access a resource he does not have permission to
  * @param {string} message A custom message to overwrite the default one
- * 
+ *
  */
 function AccessDenied(message) {
 	this.name = 'AccessDenied'
@@ -185,7 +193,7 @@ Unauthorized.prototype.constructor = Unauthorized
  * @param {string} message A custom message to overwrite the default one
  */
 function NotFound(message) {
-	this.name = 'NotFound'	
+	this.name = 'NotFound'
 	this.message = message || 'NOT_FOUND'
 	this.stack = _createErrorStack()
 }
@@ -197,7 +205,7 @@ NotFound.prototype.constructor = NotFound
  * @param {string} message A custom message to overwrite the default one
  */
 function AlreadyExists(message) {
-	this.name = 'AlreadyExists'	
+	this.name = 'AlreadyExists'
 	this.message = message || 'ALREADY_EXISTS'
 	this.stack = _createErrorStack()
 }

@@ -14,7 +14,7 @@ Run `npm i ibm-error-handler --save`
 Below follows the details about methods available in this module
 
 #### Constructor
-This module requires a parameter when require it. 
+This module requires a parameter when require it.
 
 | parameter | type    | Description
 | ---       | ---     | ---
@@ -37,7 +37,7 @@ This method will receive the error with/without the express response, if receive
 Check the example below to get a better understanding of the module
 
 ```javascript
-//bellow I check which environment I'm working with based on my environment  
+//bellow I check which environment I'm working with based on my environment
 //variables to determine if I want to print the error to the terminal or not.
 //But you can do whatever you want, but must be a Boolean
 const ErrorHandler = require('ibm-error-handler')(process.env.NODE_ENV!=='prod')
@@ -47,7 +47,7 @@ const ErrorHandler = require('ibm-error-handler')(process.env.NODE_ENV!=='prod')
  */
 class Login {
 	constructor() { }
-  
+
   //An example of a function executed in when a route is called
 	async index(req, res) {
 		try {
@@ -64,7 +64,7 @@ class Login {
 Check the example below to get a better understanding of the module
 
 ```javascript
-//bellow I check which environment I'm working with based on my environment  
+//bellow I check which environment I'm working with based on my environment
 //variables to determine if I want to print the error to the terminal or not.
 //But you can do whatever you want, but must be a Boolean
 const ErrorHandler = require('ibm-error-handler')(process.env.NODE_ENV!=='prod')
@@ -75,7 +75,7 @@ const Error = ErrorHandler.errors
  */
 class Models {
 	constructor() { }
-  
+
   	//An example of a function executed in when a route is called
 	index(req, res) {
 		try {
@@ -87,14 +87,16 @@ class Models {
 }
 ```
 
+#### Caveats
+For response, it will check if the attribute `X-Request-Id` exists, if so, it will add it as an identifier for the error.
 
 ## Contributing
 
-This module was based on a function created by my friend [Mateus](https://github.com/mateusnroll), my job was to do some adjustments to ensure it can be used as npm module.
+This module was based on a function created by my friend [Mateus](https://github.com/mateusnroll), my job was to do some adjustments to ensure it can be used as npm module and also some improvements.
 
 ## Authors
 
-* **Night** - *Initial work* - [Niightly](https://github.com/niightly)
+* **Nightly** - *Initial work* - [Niightly](https://github.com/niightly)
 
 ## License
 
